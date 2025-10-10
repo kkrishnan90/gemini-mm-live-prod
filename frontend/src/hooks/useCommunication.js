@@ -716,6 +716,13 @@ export const useCommunication = (
                   `Backend signaled Gemini response start - frontend VAD should ${vad_should_activate ? 'REMAIN ACTIVE for barge-in' : 'defer to Gemini VAD'} [ID: ${correlation_id}]`
                 );
               }
+            } else if (receivedData.type === "function_call_response") {
+              addLogEntryRef.current(
+                "toolcall",
+                `<div><strong>Function:</strong> ${receivedData.function_name}</div>
+                 <div><strong>Args:</strong> <pre>${JSON.stringify(receivedData.function_args, null, 2)}</pre></div>
+                 <div><strong>Response:</strong> <pre>${JSON.stringify(receivedData.response, null, 2)}</pre></div>`
+              );
             } else if (receivedData.type === "interrupt_playback") {
               addLogEntryRef.current("diag_interrupt_received", "[DIAG] interrupt_playback message received from backend.");
               // Handle interruption signal from backend

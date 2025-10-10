@@ -95,13 +95,6 @@ class AudioProcessor:
             timestamp=current_time
         )
         
-        # Log when Gemini starts transmitting responses (playback state detection)
-        print(f"🔊 GEMINI PLAYBACK START: "
-              f"id={correlation_id}, "
-              f"seq={sequence_num}, "
-              f"size={chunk_size}bytes, "
-              f"should_activate_frontend_vad={not settings.DISABLE_VAD}")
-        
         # Send playback start signal to frontend for VAD correlation
         await websocket.send_json({
             "type": "gemini_playback_state", 
@@ -115,8 +108,7 @@ class AudioProcessor:
         await websocket.send_json(audio_metadata)
         await websocket.send(audio_data)
         
-        expected_duration = audio_metadata["expected_duration_ms"]
-        print(f"🔊 UNIFIED Backend: Sent audio seq={sequence_num} ({chunk_size} bytes, {expected_duration:.1f}ms) [ID: {correlation_id}]")
+
     
     async def _buffer_audio(self, audio_data: bytes, current_time: float, time_since_connection: float, correlation_id: str = None):
         """Buffer audio when client is not ready."""

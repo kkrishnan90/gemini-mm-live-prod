@@ -24,7 +24,7 @@ class Settings:
     # Audio Configuration
     INPUT_SAMPLE_RATE: int = 16000
     OUTPUT_SAMPLE_RATE: int = 24000
-    DISABLE_VAD: bool = os.getenv("DISABLE_VAD", "false").lower() == "true"
+    DISABLE_VAD: bool = os.getenv("DISABLE_VAD", "true").lower() == "true"
     
     # Buffer Configuration
     MAX_BUFFER_SIZE: int = 5000

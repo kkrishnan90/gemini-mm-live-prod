@@ -46,7 +46,6 @@ class WebSocketHandler:
     async def handle_connection(self):
         """Main WebSocket connection handler."""
         connection_start_time = asyncio.get_event_loop().time()
-        print(f"🌐 New WebSocket connection accepted")
         
         # Initialize connection state and a queue for graceful tool result delivery
         session_state = self._initialize_session_state(connection_start_time)
@@ -54,11 +53,8 @@ class WebSocketHandler:
         
         try:
             async with self._create_gemini_session() as session:
-                print("✅ Successfully connected to Gemini Live API")
-                
                 # Inform the client that the backend is ready
                 await websocket.send(json.dumps({"type": "control", "signal": "server_ready"}))
-                print("🚦 Sent 'server_ready' signal to client")
                 
                 # Create handlers, passing the queue to the response handler
                 client_handler = ClientInputHandler(session, session_state)
@@ -79,22 +75,16 @@ class WebSocketHandler:
                 try:
                     await asyncio.gather(forward_task, receive_task)
                 except Exception as e_gather:
-                    print(f"WebSocket: Exception during gather: {type(e_gather).__name__}: {e_gather}")
                     traceback.print_exc()
                 finally:
                     await self._cleanup_tasks(forward_task, receive_task, session_state)
                     
         except asyncio.CancelledError:
-            print("⚠️ WebSocket connection cancelled (client disconnected)")
+            pass
         except TimeoutError as e_timeout:
-            print(f"⏰ Timeout connecting to Gemini Live API: {e_timeout}")
-            self._print_timeout_debug_info()
             traceback.print_exc()
         except Exception as e_ws_main:
-            print(f"❌ UNHANDLED error in WebSocket connection: {type(e_ws_main).__name__}: {e_ws_main}")
             traceback.print_exc()
-        finally:
-            print("🔚 WebSocket endpoint processing finished")
     
     def _initialize_session_state(self, connection_start_time: float) -> Dict[str, Any]:
         """Initialize session state for the connection."""
@@ -117,13 +107,11 @@ class WebSocketHandler:
         client = gemini_manager.initialize_client()
         config = gemini_manager.get_live_config()
         
-        print(f"🤖 Attempting to connect to Gemini Live API (model: {settings.GEMINI_MODEL_NAME})...")
-        print(f"🧳 Travel tool configured with functions")
-        
         return client.aio.live.connect(
             model=settings.GEMINI_MODEL_NAME,
             config=config
         )
+
     
     async def _cleanup_tasks(self, forward_task, receive_task, session_state):
         """Clean up asyncio tasks."""
@@ -136,19 +124,3 @@ class WebSocketHandler:
             receive_task.cancel()
         
         # Wait for task cleanup
-        for task, task_name in [(forward_task, "forward_task"), (receive_task, "receive_task")]:
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass  # Expected during cleanup
-            except Exception as e_cleanup:
-                print(f"WebSocket: Error during {task_name} cleanup: {e_cleanup}")
-                traceback.print_exc()
-    
-    def _print_timeout_debug_info(self):
-        """Print debug information for timeout errors."""
-        print("🔍 This could be due to:")
-        print("   - Network connectivity issues")
-        print("   - API key problems")
-        print("   - Google service unavailability")
-        print("   - Firewall blocking WebSocket connections")

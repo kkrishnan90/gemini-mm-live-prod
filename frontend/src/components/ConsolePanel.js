@@ -58,7 +58,7 @@ export const ConsolePanel = ({
             }`}>
             <span className="log-timestamp">[{msg.timestamp}] </span>
             <span className="log-prefix">{msg.type.toUpperCase()}: </span>
-            <span className="log-message">{msg.content}</span>
+            <span className="log-message" dangerouslySetInnerHTML={{ __html: msg.content }}></span>
           </div>
         ))}
       </div>

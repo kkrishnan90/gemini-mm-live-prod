@@ -185,26 +185,17 @@ class CallbackBasedFunctionRegistry:
                 id=call_id
             )
             
-            # Queue the function response instead of sending immediately
-            # This allows the GeminiResponseHandler to send it when Gemini completes its current speech
-            if self.tool_results_queue:
-                await self.tool_results_queue.put(function_response)
+            if self.session:
+                await self.session.send_tool_response(function_responses=[function_response])
                 
                 response_timestamp = time.strftime("%H:%M:%S.%f")[:-3]
-                print(f"\033[93m[{response_timestamp}] 📤 REGISTRY_RESPONSE_QUEUED: Function response queued for {function_name} - will be sent when turn completes\033[0m")
-            else:
-                # Fallback to immediate sending if no queue available
-                if self.session:
-                    await self.session.send_tool_response(function_responses=[function_response])
-                    
-                    response_timestamp = time.strftime("%H:%M:%S.%f")[:-3]
-                    print(f"\033[93m[{response_timestamp}] 📤 REGISTRY_RESPONSE_SENT: Function response sent immediately for {function_name} (no queue)\033[0m")
+                print(f"\033[93m[{response_timestamp}] 📤 REGISTRY_RESPONSE_SENT: Function response sent immediately for {function_name}\033[0m")
                 
         except Exception as e:
             error_timestamp = time.strftime("%H:%M:%S.%f")[:-3]
             print(f"\033[91m[{error_timestamp}] ❌ REGISTRY_CALLBACK_ERROR: Error in callback for {function_name}: {e}\033[0m")
 
-    def start_function_with_callback(
+    async def start_function_with_callback(
         self,
         function_name: str,
         arguments: Dict[str, Any],
@@ -218,10 +209,8 @@ class CallbackBasedFunctionRegistry:
         task = self.start_function_execution(function_name, arguments, call_id)
         
         # Set up task completion callback
-        task.add_done_callback(
-            lambda t, cid=call_id, fname=function_name: 
-            asyncio.create_task(self._on_function_completed(t, cid, fname))
-        )
+        await task
+        await self._on_function_completed(task, call_id, function_name)
         
         callback_timestamp = time.strftime("%H:%M:%S.%f")[:-3]
         print(f"\033[96m[{callback_timestamp}] 🔄 REGISTRY_CALLBACK_SET: Callback set for {function_name} (ID: {call_id})\033[0m")
