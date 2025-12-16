@@ -175,7 +175,7 @@ The following environment variables are critical for running the backend with Ve
 - `GOOGLE_GENAI_USE_VERTEXAI`: Must be set to `true`.
 - `GOOGLE_CLOUD_PROJECT_ID`: Your Google Cloud project ID.
 - `GOOGLE_CLOUD_LOCATION`: The Google Cloud location for your project (e.g., `us-central1`).
-- `GEMINI_MODEL_NAME`: The Gemini model to use (e.g., `gemini-live-2.5-flash`).
+- `GEMINI_MODEL_NAME`: The Gemini model to use (e.g., `gemini-live-2.5-flash-native-audio`).
 - `LANGUAGE_CODE`: The default language for the conversation (e.g., `en-US`).
 - `VOICE_NAME`: The voice for the AI assistant (e.g., `Puck`).
 - `DISABLE_VAD`: Whether to disable Voice Activity Detection.
